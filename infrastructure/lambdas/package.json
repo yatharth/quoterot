@@ -1,0 +1,13 @@
+{
+  "name": "quoterot-lambdas",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "aws-sdk": "^2.1032.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.8",
+    "@types/uuid": "^8.3.3"
+  }
+}
