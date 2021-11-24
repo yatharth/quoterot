@@ -6,9 +6,9 @@
     "postinstall": "(cd infrastructure/lambdas/ && npm install);",
     "build": "tsc",
     "watch": "tsc --watch",
-    "sanitycheck": "cdk synth",
-    "local": "cdk synth --no-staging > template.yaml && sam local start-api",
-    "deploy": "cdk bootstrap && cdk deploy",
+    "sanitycheck": "npm run build && cdk synth",
+    "local": "npm run build && cdk synth --no-staging > template.yaml && sam local start-api",
+    "deploy": "cdk bootstrap && npm run build && cdk deploy",
     "destroy": "cdk destroy"
   },
   "dependencies": {
