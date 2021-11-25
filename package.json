@@ -8,16 +8,25 @@
     "watch": "tsc --watch",
     "sanitycheck": "npm run build && cdk synth",
     "local": "npm run build && cdk synth --no-staging > template.yaml && sam local start-api",
-    "deploy": "cdk bootstrap && npm run build && cdk deploy",
+    "deploy": "cdk bootstrap && npm run build && cdk deploy --outputs-file ./cdk-outputs.json",
     "destroy": "cdk destroy"
   },
   "dependencies": {
-    "@aws-cdk/aws-apigateway": "^1.132.0",
-    "@aws-cdk/aws-lambda": "^1.132.0",
-    "@aws-cdk/aws-lambda-nodejs": "^1.132.0",
-    "@aws-cdk/core": "^1.132.0"
+    "@aws-cdk/aws-apigateway": "~1.134.0",
+    "@aws-cdk/aws-lambda": "~1.134.0",
+    "@aws-cdk/aws-lambda-event-sources": "~1.134.0",
+    "@aws-cdk/aws-lambda-nodejs": "~1.134.0",
+    "@aws-cdk/aws-sns": "~1.134.0",
+    "@aws-cdk/aws-sns-subscriptions": "~1.134.0",
+    "@aws-cdk/aws-sqs": "~1.134.0",
+    "@aws-cdk/core": "~1.134.0",
+    "aws-lambda": "^1.0.7",
+    "axios": "^0.24.0",
+    "date-fns": "^2.26.0",
+    "twitter-api-v2": "^1.6.5"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.85",
     "@types/node": "^16.11.8",
     "esbuild": "^0.13.14",
     "typescript": "^4.5.2"

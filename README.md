@@ -6,6 +6,8 @@ This repo uses [AWS CDK][cdk] to define its instrastructure declaratively. This 
 
 The infrastructure definitions are stored in `infrastructure/`. The “business logic” is stored in `lib/`. The AWS Lambda functions make use of the business logic stored there.
 
+<!-- TODO: explain the SNS, SQS layout etc.; service structure  -->
+
 
 [cdk]: https://aws.amazon.com/cdk/
 
@@ -60,3 +62,12 @@ You can now run
 * `npm run deploy` to deploy to AWS.
 * `npm run destroy` to tear down whatever has been created.
 
+To publish a test message to the SNS topic:
+
+```
+aws sns publish \
+    --topic-arn "arn:aws:sns:us-east-1:122557655356:QuoteRotStack-tweetsToArchiveTopic88FD0531-Q8KJULEP7WB" \
+    --subject "Just testing 🚀" \
+    --message "Hello world 🐊"
+    
+```
