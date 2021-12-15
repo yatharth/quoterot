@@ -1,15 +1,9 @@
 This file just contains extra comments about package.json.
 
-The lambda functions have their own inner package.json. When AWS bundles them, it includes any packages from the outer package.json used by them, but not any not used. This inner package.json is mostly to keep it clean for the outer package.json, I guess. It makes sense this way, as the outer package includes @aws-cdk/aws-dynamodb and other things the inner lambda functions might use too.
-
-The "postinstall" script is automatically invoked after `npm install` is locally run to install to node_modules/. In our case, it makes sure the inner package.json gets installed too.
-As long as one always only ever clones the repo and then runs `npm install`, or uses `npm [un]install {specific package}` on the inner or outer package.json, this should keep the inner and outer node_modules/ updated.
-
-TODO: Consider merging inner package.json into the outer one; I think because of tree-shaking, it doesn’t matter much anyway.
-
 ``@types/node` has typings for things otherwise included in node, but not typed, like `require('fs')`.
 
 When upgrading, keep in mind that the @aws-cdk should have the same minor number. Otherwise, compatability issues arise. This is why I pin versions to the minor number using ~ instead of the major one with ^. Also make sure the version number kept in sync with your computer’s CDK CLI utility.
 
-XXX: Why do I need esbuild in devDependencies; how is it invoked, or involved?
+XXX: Not sure why esbuild is in devDependencies; how is it invoked, or involved?
+
 

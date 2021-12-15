@@ -4,6 +4,8 @@ Handlers can be synchronous or async.
 
 If async, return a promise if you want it to wait for pending stuff, or await those promises yourself. If synchronous handler, then anything on the event loop will be waited for automatically, though avoid this and just use async handlers to be safe. [Source](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html).
 
+AWS seems to do some nice tree-shaking for us with the lambda functions; only the dependencies used are included in the bundle. `aws-sdk` gets included automatically remotely, but doesn’t hurt to include in our `package.json`.
+
 
 
 # Lambda destinations

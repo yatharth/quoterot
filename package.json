@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "postinstall": "(cd infrastructure/lambdas/ && npm install);",
     "build": "tsc",
     "watch": "tsc --watch",
     "sanitycheck": "npm run build && cdk synth",
@@ -26,6 +25,7 @@
     "@aws-cdk/aws-sqs": "~1.134.0",
     "@aws-cdk/core": "~1.134.0",
     "aws-lambda": "^1.0.7",
+    "aws-sdk": "^2.1032.0",
     "axios": "^0.24.0",
     "date-fns": "^2.26.0",
     "twitter-api-v2": "^1.6.5"
