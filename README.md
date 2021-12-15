@@ -58,16 +58,18 @@ npm install
 You can now run
 
 * `npm run sanitycheck` to make sure your CDK configuration looks good.
-* `npm run local` to test out the API locally.
+* `npm run diff` to check what resources will be changed on deployment.
+* `npm run local` to test out the API locally with SAM.
 * `npm run deploy` to deploy to AWS.
 * `npm run destroy` to tear down whatever has been created.
 
-To publish a test message to the SNS topic:
 
-```
-aws sns publish \
-    --topic-arn "arn:aws:sns:us-east-1:122557655356:QuoteRotStack-tweetsToArchiveTopic88FD0531-Q8KJULEP7WB" \
-    --subject "Just testing 🚀" \
-    --message "Hello world 🐊"
-    
+### Testing locally 
+
+You can do a limited amount of testing locally. This uses AWS SAM under the hood. 
+
+You need to have Docker installed and running. Then just run `npm run local`.
+
+SAM can run the API gateway lambda functions, but it can’t simulate SQS, SNS, or other services. Thus, you’ll have to already have deployed these resources those to AWS, have captured their URLs or ARNs, and then pass those in as environment variables into the lambda functions appropriately. I haven’t figured out or cared to do this.
+
 ```

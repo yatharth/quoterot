@@ -1,16 +1,13 @@
-import {APIGatewayProxyResultV2, SQSEvent} from 'aws-lambda';
-import {makeResponse} from './helpers/response'
+import {SQSEvent} from 'aws-lambda';
 
-export async function handler(event: SQSEvent): Promise<APIGatewayProxyResultV2> {
+export async function handler(event: SQSEvent) {
 
-    const messages = event.Records.map(record => {
-        const body = JSON.parse(record.body) as {Subject: string; Message: string};
-        return {subject: body.Subject, message: body.Message};
-    });
+    const allMessages = event.Records.map(record => record.body).join(";")
 
-    if (messages) throw "Oops!"
+    if (allMessages.includes("fail")) {
+        throw `Oops! Failed for '${allMessages}'.`
+    }
 
-    console.log('messages 👉', JSON.stringify(messages, null, 2));
+    console.log(`Consumed SQS messages: ${allMessages}.`)
 
-    return makeResponse(200, {messages})
 }
