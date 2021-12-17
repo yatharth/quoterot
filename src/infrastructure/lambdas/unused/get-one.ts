@@ -1,4 +1,4 @@
-import {makeResponse} from './helpers/response'
+import {makeResponse} from '../helpers/response'
 
 export const handler = async (event: any = {}): Promise<any> => {
 

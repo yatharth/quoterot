@@ -8,13 +8,15 @@
     "sanitycheck": "npm run build && cdk synth",
     "diff": "npm run build && cdk diff",
     "local": "npm run build && cdk synth --no-staging > template.yaml && sam local start-api",
-    "deploy": "npm run build && cdk bootstrap && cdk deploy --outputs-file ./cdk-outputs.json",
+    "deploy": "npm run build && cdk bootstrap && cdk deploy --outputs-file ./cdk-outputs.json --require-approval never",
     "destroy": "cdk destroy"
   },
   "dependencies": {
     "@aws-cdk/aws-apigateway": "~1.134.0",
     "@aws-cdk/aws-cloudwatch-actions": "~1.134.0",
     "@aws-cdk/aws-dynamodb": "~1.134.0",
+    "@aws-cdk/aws-events": "~1.134.0",
+    "@aws-cdk/aws-events-targets": "~1.134.0",
     "@aws-cdk/aws-iam": "~1.134.0",
     "@aws-cdk/aws-lambda": "~1.134.0",
     "@aws-cdk/aws-lambda-destinations": "~1.134.0",
@@ -27,7 +29,9 @@
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1032.0",
     "axios": "^0.24.0",
-    "date-fns": "^2.26.0",
+    "date-fns": "^2.27.0",
+    "date-fns-tz": "^1.1.6",
+    "p-iteration": "^1.1.8",
     "twitter-api-v2": "^1.6.5"
   },
   "devDependencies": {

@@ -1,16 +1,13 @@
 import {Construct} from '@aws-cdk/core'
-import {Function as lambdaFunction} from '@aws-cdk/aws-lambda/lib/function'
+import {Runtime, Function} from '@aws-cdk/aws-lambda'
 import {NodejsFunction, NodejsFunctionProps} from '@aws-cdk/aws-lambda-nodejs'
-import {Runtime} from '@aws-cdk/aws-lambda'
-import {Queue} from '@aws-cdk/aws-sqs'
-import {SqsEventSource} from '@aws-cdk/aws-lambda-event-sources'
 
 interface StringValued {
     [key: string]: string;
 }
 
 export function makeLambda<LambdaEnvironment extends StringValued = {}>
-(scope: Construct, id: string, filename: string, environment: LambdaEnvironment, props: NodejsFunctionProps = {}): lambdaFunction {
+(scope: Construct, id: string, filename: string, environment: LambdaEnvironment, props: NodejsFunctionProps = {}): Function {
 
     const defaultProps: NodejsFunctionProps = {
         runtime: Runtime.NODEJS_14_X,
@@ -44,14 +41,3 @@ export function makeLambda<LambdaEnvironment extends StringValued = {}>
 
 }
 
-export function subscribeLambdaToQueue(lambda: lambdaFunction, queue: Queue) {
-    // TODO: Consider maxxing batching variables.
-    // TODO: Increase batch size from 1?
-    lambda.addEventSource(
-        new SqsEventSource(queue, {
-            // https://docs.aws.amazon.com/cdk/api/latest/docs/aws-lambda-event-sources-readme.html
-            // maxBatchingWindow:
-            batchSize: 1,
-        }),
-    )
-}

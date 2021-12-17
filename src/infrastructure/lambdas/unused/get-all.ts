@@ -1,4 +1,4 @@
-import {makeResponse} from './helpers/response'
+import {makeResponse} from '../helpers/response'
 import {Runtime} from '@aws-cdk/aws-lambda'
 
 export const handler = async (): Promise<any> => {

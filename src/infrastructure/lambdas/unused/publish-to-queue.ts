@@ -1,5 +1,5 @@
-import {makeResponse} from './helpers/response'
-import {publishToQueue} from './helpers/sqs'
+import {makeResponse} from '../helpers/response'
+import {publishToQueue} from '../helpers/sqs'
 import assert from 'assert'
 
 export async function handler() {

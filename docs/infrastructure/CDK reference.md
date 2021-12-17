@@ -68,6 +68,49 @@ Apparently rate limiting lambda consumption of SQS queues [doesn’t work too we
 
 When you process messages as a batch, you can report success/failure at the record level. There are many approaches; some people delete the successful messages from the queue at the end of the function if not everything succeeded. Others return success, but reinsert the failed records. Amazon also released functionality to report partial success [directly](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#services-sqs-batchfailurereporting). You can read more [here](https://lumigo.io/blog/sqs-and-lambda-the-missing-guide-on-failure-modes/).
 
+Better than maintaining your own MQ-style message broker because: https://stackoverflow.com/questions/28687295/sqs-vs-rabbitmq
+
+
+
+# Step functions
+
+If you had a lot of throughput in a queue, you could use Express step functions to process them: https://docs.aws.amazon.com/step-functions/latest/dg/sample-project-express-high-volume-sqs.html
+
+Otherwise, can use this pattern where I think step function receives from queue, processes, and waits for SQS callback?: https://aws.amazon.com/getting-started/hands-on/orchestrate-microservices-with-message-queues-on-step-functions/
+
+According to this, it’s not possible: https://stackoverflow.com/a/53477868/1292652
+
+> “If you must use SQS, then you will need to have a lambda function to act as a proxy. You will need to set up the queue as a lambda trigger, and you will need to write a lambda that can parse the SQS message and make the appropriate call to the Step Functions StartExecution API.
+
+Instead, could write messages to an S3 bucket and use CloudWatch events to start a state machine?
+
+To ratelimit upstream requests, could just limit the lambda’s concurrency? eh
+https://docs.aws.amazon.com/lambda/latest/dg/invocation-scaling.html
+
+
+Basic tutorial stuff:
+
+- Handling errors: https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-handling-error-conditions.html
+
+- Periodically start: https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-cloudwatch-events-target.html
+
+
+To do with CDK: 
+
+- cdk step function - Google Search — https://www.google.com/search?client=safari&rls=en&q=cdk+step+function&ie=UTF-8&oe=UTF-8
+- @aws-cdk/aws-stepfunctions module · AWS CDK — https://docs.aws.amazon.com/cdk/api/latest/docs/aws-stepfunctions-readme.html
+- AWS CDK: State Machine with Step Functions | Sebastian Müller, Hamburg - sbstjn.com — https://sbstjn.com/blog/aws-cdk-state-machine-step-functions-lambda/
+- AWS TypeScript CDK and Step Functions | by Damien Gallagher | AWS in Plain English — https://aws.plainenglish.io/aws-typescript-cdk-and-step-functions-bbc173333aed
+- Creating a Lambda State Machine for Step Functions Using the AWS CDK - AWS Step Functions — https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-lambda-state-machine-cdk.html
+
+
+This is the big tutorial to follow to see if we can make step functions work with SQS that also allows for exponential back-off and allowing when one lambda ends to only then fetch next SQS message:
+
+Orchestrate Queue-based Microservices with AWS Step Functions and Amazon SQS — https://aws.amazon.com/getting-started/hands-on/orchestrate-microservices-with-message-queues-on-step-functions/
+
+Probably will want fan-out dynamic parallelism? https://aws.amazon.com/blogs/aws/new-step-functions-support-for-dynamic-parallelism/
+
+
 
 # SNS topics
 
