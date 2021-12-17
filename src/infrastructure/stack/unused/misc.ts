@@ -1,4 +1,11 @@
 
+
+
+// // Topic to send emails on errors (not used right now).
+// const errorsTopic = new Topic(this, 'errorsTopic')
+// errorsTopic.addSubscription(new EmailSubscription('yatharth999@gmail.com'))
+
+
 // const getAllLambda = makeLambda(this, 'getAllIntegration', join(lambdasDir, 'get-all.ts'), {})
 // const getOneLambda = makeLambda(this, 'getOneIntegration', join(lambdasDir, 'get-one.ts'),{})
 // const apiItems = addEndpoint(api.root, 'items')

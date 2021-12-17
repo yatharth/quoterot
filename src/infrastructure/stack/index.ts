@@ -1,8 +1,6 @@
 import {join} from 'path'
 
 import {App, Stack} from '@aws-cdk/core'
-import {Topic} from '@aws-cdk/aws-sns'
-import {EmailSubscription} from '@aws-cdk/aws-sns-subscriptions'
 
 import {makeLambda} from './helpers/lambda'
 import {makeCfnOutput} from './helpers/cdk'
@@ -21,10 +19,6 @@ export class QuoteRotStack extends Stack {
 
 
         // GENERAL STUFF.
-
-        // Topic to send emails on errors (not used right now).
-        const errorsTopic = new Topic(this, 'errorsTopic')
-        errorsTopic.addSubscription(new EmailSubscription('yatharth999@gmail.com'))
 
         // API gateway for the app (used by all endpoints).
         const api = makeApi(this, 'QuoteRotApi')

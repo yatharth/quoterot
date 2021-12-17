@@ -1,5 +1,5 @@
 import {Construct} from '@aws-cdk/core'
-import {Runtime, Function} from '@aws-cdk/aws-lambda'
+import {Function, Runtime, Tracing} from '@aws-cdk/aws-lambda'
 import {NodejsFunction, NodejsFunctionProps} from '@aws-cdk/aws-lambda-nodejs'
 
 interface StringValued {
@@ -11,6 +11,12 @@ export function makeLambda<LambdaEnvironment extends StringValued = {}>
 
     const defaultProps: NodejsFunctionProps = {
         runtime: Runtime.NODEJS_14_X,
+
+        // This enables X-Ray tracing, which our error monitoring solution Dashbird uses to show better error messages.
+        //  https://dashbird.io/docs/quickstart/enable-x-ray/
+        // XXX: To take full advantage of this, I do need to wrap AWS calls with the AWS X-Ray wrapper:
+        //  https://docs.aws.amazon.com/lambda/latest/dg/nodejs-tracing.html
+        tracing: Tracing.ACTIVE,
 
         // XXX: What is the difference between `code:` and `entry:`?
         // code: Code.asset('./handlers/publish'),
