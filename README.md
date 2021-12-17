@@ -4,12 +4,36 @@
 
 This repo uses [AWS CDK][cdk] to define its instrastructure declaratively. This makes deploying to AWS super easy.
 
-The infrastructure definitions are stored in `infrastructure/`. The “business logic” is stored in `lib/`. The AWS Lambda functions make use of the business logic stored there.
-
-<!-- TODO: explain the SNS, SQS layout etc.; service structure  -->
-
-
 [cdk]: https://aws.amazon.com/cdk/
+
+
+### Code layout
+
+- `src/`
+    - `infrastructure/`
+      - `stack/`: defines the entire infrastructure stack
+      - `lambdas/`: individual lambda functions
+    - `lib/`: domain-specific helper code
+      - `twitter/` for accessing the Twitter API
+      - `archiving/` for accessing web archiving APIs
+
+
+### AWS architecture
+
+1. EventBridge event rule runs every so often.
+2. This triggers a lambda function called `checkFollowersToQueue`.
+3. That lambda checks our `@quoterot` Twitter bot’s followers on Twitter, then puts all of them in an SQS queue `followersToCheckQueue`.
+4. That queue feeds into a lambda function called `parseFollowerTimelines`, which takes a follower, pulls in their tweets from the last day or few hours, sees which ones quote other tweets, and makes a list of those quoted tweets.
+5. Those quotes tweets get inserted into an SQS queue called `tweetsToArchiveQueue`.
+6. That queue feeds into a lambda function called `archiveTweets` which then requests an online web archiving system to archive those quoted tweets for future reference.
+
+Right now, parts (1–5) are implemented; (6) is not.
+
+
+### Documentation
+
+`docs/infrastructure/` contains some miscellanous personal notes on using CDK. That’s about it.
+
 
 
 ## Installation
@@ -43,7 +67,7 @@ The first two are secrets for the IAM account you’re deploying from. Ask [Yath
 [yatharth_contact]: mailto:yatharth999@gmail.com
 
 
-### Installing the package
+### Installing the project
 
 Clone this repo using, then install the packages:
 
@@ -66,10 +90,8 @@ You can now run
 
 ### Testing locally 
 
-You can do a limited amount of testing locally. This uses AWS SAM under the hood. 
+You can do a limited amount of testing locally. 
 
 You need to have Docker installed and running. Then just run `npm run local`.
 
-SAM can run the API gateway lambda functions, but it can’t simulate SQS, SNS, or other services. Thus, you’ll have to already have deployed these resources those to AWS, have captured their URLs or ARNs, and then pass those in as environment variables into the lambda functions appropriately. I haven’t figured out or cared to do this.
-
-```
+This uses AWS SAM under the hood. SAM can run the API gateway and the lambda functions locally, but it can’t simulate SQS, SNS, or other services. Thus, you’ll have to already have deployed these resources those to AWS, have captured their URLs or ARNs, and then pass those in as environment variables into the lambda functions appropriately. This is complicated enough that I haven’t bothered doing this.
