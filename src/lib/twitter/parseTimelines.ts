@@ -1,8 +1,8 @@
 import {startOfHour, subHours} from 'date-fns'
 import {TweetUserTimelineV2Paginator, TweetV2} from 'twitter-api-v2'
 
-import {client} from './helpers/constants'
 import {jsonStringifyPretty} from '../../helpers/stringify'
+import {client} from './helpers/auth'
 
 
 function getQuotedTweetId(tweet: TweetV2) {

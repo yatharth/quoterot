@@ -1,4 +1,5 @@
-import {client, QUOTEROT_USERID} from './helpers/constants'
+import {QUOTEROT_USERID} from './helpers/constants'
+import {client} from './helpers/auth'
 
 
 export async function getBotFollowers() {
