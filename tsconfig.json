@@ -8,7 +8,7 @@
     ],
     "module": "commonjs",  // Need this; otherwise Typescript emits with import statements instead of require, and AWS CDK gets confused.
     "moduleResolution": "Node",  // Need this; otherwise my IDE doesn’t resolve imports correctly.
-    "esModuleInterop": true,  // Allows cleaner importing, without the starred import.
+    "esModuleInterop": true,  // Allows cleaner importing, without the starred import, but Typescript only does type-checking for this; would need another tool to actually transpile and fix the starred import.
 
     "strict": true,
     "noUnusedLocals": true,
@@ -22,6 +22,8 @@
 
     "inlineSourceMap": true,
     "inlineSources": true,
+
+    "incremental": true
 
     // "baseUrl": "./",  // Lets you set a base directory to resolve non-absolute module names.
     // "outDir": "lib",  // .js (as well as .d.ts, .js.map, etc.) files will be emitted into this directory.,

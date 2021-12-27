@@ -6,4 +6,11 @@ When upgrading, keep in mind that the @aws-cdk should have the same minor number
 
 XXX: Not sure why esbuild is in devDependencies; how is it invoked, or involved?
 
+TODO: Just have to prefix with -- as otherwise npm run will steal arguments. So npm run -- prefix.
+
+TODO: Move more stuff to devDependencies?
+
+TODO: Rename this file
+TODO: change .env filename and document
+
 

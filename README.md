@@ -3,7 +3,7 @@
 
 ## Developer Notes
 
-This repo uses [AWS CDK][cdk] to define its instrastructure declaratively. This makes deploying to AWS super easy.
+This repo uses [AWS CDK][cdk] to define its infrastructure declaratively. This makes deploying to AWS super easy.
 
 Error monitoring is done using [Dashbird][dashbird].
 
@@ -92,6 +92,8 @@ You can now run
 * `npm run deploy` to deploy to AWS.
 * `npm run destroy` to tear down whatever has been created.
 
+You can run with specific stacks! In this case . . . TODO: blah
+
 
 ### Testing locally 
 
@@ -120,7 +122,12 @@ If you’re deploying this project independently, then follow these instructions
 ### Twitter
 
 1. Go to the Twitter Developer Portal and apply for access to the v2 API. Wait for approval.
-2. Go to your Twitter Developer Portal, find your project, and note down the secrets for your project. Specifically, we’ll need the Bearer Token.
+2. In the portal, find your project, and note down its consumer secrets.
+3. Generate a bearer token and note it down. 
+4. Generate OAuth secrets and note them down.
+5. Generate access token secrets and note them down.
+6. Apply for Elevated access (to use the Account Activity API). Wait for approval.
+7. In the portal, create an Account Activity API dev environment and note its name down.
 
 
 ### Dashbird
