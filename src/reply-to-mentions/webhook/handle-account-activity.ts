@@ -4,13 +4,12 @@ import {jsonStringifyPretty} from '../../helpers/javascript/stringify'
 import {fetchTweet} from '../../helpers/twitter/rest-api/tweet'
 import {getQuotedTweet} from '../../helpers/twitter/rest-api/quote-tweets'
 import {TweetCreateEvent, TweetCreateEvents} from './_account-activity-types'
-import {getArchiveLink} from '../../helpers/archive/twitter/get-archive-link'
-import {readSecret} from '../../helpers/cdk/lambdas/secrets'
+import {readFromEnv} from '../../helpers/cdk/lambdas/secrets'
 import {reply} from '../../helpers/twitter/rest-api/post'
 
 
-const botUserId = readSecret('TWITTER_USERID')
-const botUserName = readSecret('TWITTER_USERNAME')
+const botUserId = readFromEnv('TWITTER_USERID')
+const botUserName = readFromEnv('TWITTER_USERNAME')
 
 async function replyWithHelpMessage(requestTweetId: string, reason: string) {
     const message = `${reason} I’m not sure what to do. To see how to use me, check the pinned tweet on my profile.`
@@ -55,14 +54,14 @@ async function handleEvent(event: TweetCreateEvent) {
         return
     }
 
-    const archiveLink = getArchiveLink(quotedTweet)
-    if (!archiveLink) {
-        debug("quoted tweet is not archived.", event)
-        await reply(requestTweetId, "Could not find the quoted tweet in our archive. Sorry.")
-        return
-    }
-
-    await reply(requestTweetId, `Here’s an archive version of the quoted tweet: ${archiveLink}`)
+    // const archiveLink = getArchiveLink(quotedTweet)
+    // if (!archiveLink) {
+    //     debug("quoted tweet is not archived.", event)
+    //     await reply(requestTweetId, "Could not find the quoted tweet in our archive. Sorry.")
+    //     return
+    // }
+    //
+    // await reply(requestTweetId, `Here’s an archive version of the quoted tweet: ${archiveLink}`)
 
 }
 

@@ -2,29 +2,32 @@ import {Construct} from '@aws-cdk/core'
 import {AttributeType, BillingMode, Table} from '@aws-cdk/aws-dynamodb'
 import {Function} from '@aws-cdk/aws-lambda'
 
-import {getId} from './cdk'
 import {makeCfnOutput} from './cfn'
-import {ENVIRONMENT_VARIABLE} from '../lambdas/dynamodb'
+import {TableParams} from '../lambdas/dynamodb'
 
 
-export function makeTable(scope: Construct, id: string, partitionKey: string) {
+export class DynamoDbTable {
 
-    const table = new Table(scope, id, {
-        billingMode: BillingMode.PAY_PER_REQUEST,
-        partitionKey: {name: partitionKey, type: AttributeType.STRING},
+    table: Table
+    tableNameEnvVar: string
 
-    })
+    constructor(scope: Construct, params: TableParams) {
 
-    makeCfnOutput(scope, `${getId(table)}Name`, table.tableName)
+        // TODO: Need to mark as persistent?
 
-    return table
+        this.table = new Table(scope, params.id, {
+            billingMode: BillingMode.PAY_PER_REQUEST,
+            partitionKey: {name: params.partitionKey, type: AttributeType.STRING},
+        })
 
-}
+        makeCfnOutput(scope, `${params.tableNameEnvVar}`, this.table.tableName)
 
-export function connectLambdaToTable(lambda: Function, table: Table) {
-    table.grantReadWriteData(lambda)
-    lambda.addEnvironment(ENVIRONMENT_VARIABLE, table.tableName)
-}
+        this.tableNameEnvVar = params.tableNameEnvVar
+    }
 
-export class makeCfnOutputForTable {
+    connectLambda(lambda: Function) {
+        this.table.grantReadWriteData(lambda)
+        lambda.addEnvironment(this.tableNameEnvVar, this.table.tableName)
+    }
+
 }

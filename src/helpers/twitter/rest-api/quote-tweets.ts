@@ -43,7 +43,7 @@ function getQuotedTweetIds(tweets: TweetV2[]): string[] {
     const quotedTweetIdsWithDuplicates = removedUndefined(tweets.map(getQuotedTweetId))
     const quotedTweetIds = removeDuplicates(quotedTweetIdsWithDuplicates)
 
-    console.log(`Found ${quotedTweetIds.length} unique quoted tweets (${quotedTweetIdsWithDuplicates.length} with duplicates).`)
+    console.log(`Found ${quotedTweetIds.length} unique quoted tweets (${quotedTweetIdsWithDuplicates.length} including duplicates).`)
 
     return quotedTweetIds
 
@@ -56,6 +56,9 @@ export function getQuotedTweets(timeline: TweetUserTimelineV2Paginator): TweetV2
     //  but sadly, twitter-api-v2 doesn’t export that type.
 
     const quotedTweetIds = getQuotedTweetIds(timeline.tweets)
+
+    if (!timeline.tweets.length)
+        return []
 
     if (!timeline.includes?.tweets)
         throw "Timeline does have includes for tweets."

@@ -1,13 +1,13 @@
 import express, {Request as ExpressRequest, Response as ExpressResponse} from 'express'
 
 import {webhookHandler} from '../webhook/webhook'
-import {readSecret} from '../../helpers/cdk/lambdas/secrets'
+import {readFromEnv} from '../../helpers/cdk/lambdas/secrets'
 
 
 export const PORT = 3000
 export const filename = __filename
 
-const CONSUMER_SECRET = readSecret('TWITTER_CONSUMER_SECRET')
+const CONSUMER_SECRET = readFromEnv('TWITTER_CONSUMER_SECRET')
 
 function webhookAdapter(req: ExpressRequest, res: ExpressResponse) {
     const response = webhookHandler(req.method, req.query, req.body, CONSUMER_SECRET)

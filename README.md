@@ -68,6 +68,15 @@ You’ll want to enter:
 
 The first two are secrets associated with whichever the IAM account you’re deploying from. Ask [Yatharth][yatharthemail] to send you these, or create your own IAM account using the first-time setup instructions below.
 
+Then run 
+
+```shell
+cdk bootstrap
+```
+
+To set up CDK for your region.
+
+
 
 ### Installing the project
 

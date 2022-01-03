@@ -22,7 +22,11 @@ export async function getTimelineBetween(userId: string, startTime: Date, endTim
         console.log(`Now fetched ${timeline.tweets.length} tweets.`)
     }
 
-    verifyNoErrors(timeline, "getting timeline")
+    // @ts-ignore
+    verifyNoErrors(timeline, "getting timeline", [
+        "Sorry, you are not authorized to see the user with",
+        "Sorry, you are not authorized to see the Tweet with"
+    ])
 
     return timeline
 

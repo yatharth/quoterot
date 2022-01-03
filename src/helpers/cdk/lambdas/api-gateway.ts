@@ -1,6 +1,7 @@
-import {APIGatewayProxyEventV2, APIGatewayProxyResultV2} from 'aws-lambda'
+import {APIGatewayProxyEventV2} from 'aws-lambda'
 
 import {jsonStringifyPretty} from '../../javascript/stringify'
+import {APIGatewayProxyResultV2} from 'aws-lambda/trigger/api-gateway-proxy'
 
 
 // Alias useful types for lambdas invoked by API Gateway.

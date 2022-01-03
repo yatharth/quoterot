@@ -1,64 +1,62 @@
 import {SQSEvent} from 'aws-lambda'
 
 import {CHECK_LAST_X_HOURS_OF_TWEETS} from '../run-schedule'
-import {publishAllToQueue, readQueueUrl} from '../../helpers/cdk/lambdas/sqs'
+import {publishAllToQueue, readDefaultQueueUrl} from '../../helpers/cdk/lambdas/sqs.old'
 import {jsonStringifyCompact} from '../../helpers/javascript/stringify'
 import {getTimelineFromLastXHours} from '../../helpers/twitter/rest-api/timeline'
 import {getQuotedTweets} from '../../helpers/twitter/rest-api/quote-tweets'
 import {getCanonicalUrl} from '../../helpers/twitter/rest-api/tweet'
 
 
-function extractFollowerIds(event: SQSEvent) {
-    console.log(`Parsing ${event.Records.length} records...`)
-
-    const followerIds = event.Records.map((event) => event.body)
+async function handleFollowerId(followerId: string) {
 
     const isFormattedLikeUserid = (followerId: string) => /^\d+$/.test(followerId)
+    if (!isFormattedLikeUserid(followerId)) {
+        throw `Follower ID is not formatted like one: ${followerId}`
+    }
 
-    followerIds.forEach((followerId) => {
+    try {
 
-        if (followerId.includes('fail')) {
-            throw "Received fail keyword!"
+        const timeline = await getTimelineFromLastXHours(followerId, CHECK_LAST_X_HOURS_OF_TWEETS)
+
+        if (!timeline.tweets.length) {
+            console.log(`No tweets found for follower id ${followerId} in this period.`)
+            return
         }
 
-        if (!isFormattedLikeUserid(followerId)) {
-            throw `This doesn’t look like a user id: ${jsonStringifyCompact(followerId)}`
+        const quotedTweets = getQuotedTweets(timeline)
+        const quotedTweetUrls = quotedTweets.map(tweet => getCanonicalUrl(tweet, timeline.includes))
+
+        if (!quotedTweetUrls.length) {
+            console.log(`No quoted tweets for follower id ${followerId} in this period.`)
+            return
         }
 
-    })
+        await publishAllToQueue(readDefaultQueueUrl(), quotedTweetUrls)
 
-    console.log(`Parsed ${followerIds.length} follower IDs: ${jsonStringifyCompact(followerIds)}`)
-    return followerIds
-}
+        console.log(`Successfully queued ${quotedTweetUrls.length} quoted tweets for follower id ${followerId}:`)
+        console.log(jsonStringifyCompact(quotedTweetUrls))
 
-
-async function handleFollowerId(followerId: string, queueUrl: string) {
-    console.log(`Handling follower ${followerId}...`)
-
-    const timeline = await getTimelineFromLastXHours(followerId, CHECK_LAST_X_HOURS_OF_TWEETS)
-    const quotedTweets = getQuotedTweets(timeline)
-    const quotedTweetUrls = quotedTweets.map(tweet => getCanonicalUrl(tweet, timeline.includes))
-
-    console.log(`Queuing ${quotedTweetUrls.length} quoted tweets: ${jsonStringifyCompact(quotedTweetUrls)}`)
-
-    await publishAllToQueue(queueUrl, quotedTweetUrls)
+    } catch (err) {
+        console.error(`Error while handling follower id ${followerId}`)
+        throw err
+    }
 
 }
 
 
 export async function handler(event: SQSEvent) {
 
-    const queueUrl = readQueueUrl()
+    const followerIds = event.Records.map(event => event.body)
 
-    const followerIds = extractFollowerIds(event)
-
+    // WHY DO I USE A FOR (...) AWAIT ... LOOP?
+    //
     // We want to NOT process each follower ID concurrently; that might hit our Twitter rate limits too quickly.
-    //  Instead, having only one thread making Twitter requests per invocation of this lambda function
-    //  makes managing the rate limits much more predictable. I can just limit the maximum concurrency
-    //  of this lambda function. This is why I use a for (... of ...) await ... loop.
+    //  Having only one thread making Twitter requests for per lambda invocation makes managing the Twitter rate
+    //  limits much more predictable: I can just limit the maximum concurrency of this lambda function.
+
     for (const followerId of followerIds) {
-        await handleFollowerId(followerId, queueUrl)
+        await handleFollowerId(followerId)
     }
 
-    console.log(`All done! Handled ${event.Records.length} records.`)
 }

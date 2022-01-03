@@ -16,7 +16,7 @@ import ngrok from 'ngrok'
 
 import {PORT, filename} from './serve-webhook'
 import {setWebhook} from './set-webhook'
-import {readSecret} from '../../helpers/cdk/lambdas/secrets'
+import {readFromEnv} from '../../helpers/cdk/lambdas/secrets'
 
 
 const watch = new TscWatchClient()
@@ -32,7 +32,7 @@ watch.on('first_success', async () => {
     try {
 
         console.log("Connecting to ngrok...")
-        await ngrok.authtoken(readSecret('NGROK_AUTH_TOKEN'))
+        await ngrok.authtoken(readFromEnv('NGROK_AUTH_TOKEN'))
         const url = await ngrok.connect(PORT)
         console.log(`Webhook now tunnelled to ${url}`)
 

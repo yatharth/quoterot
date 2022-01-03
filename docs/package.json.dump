@@ -4,6 +4,8 @@ This file just contains extra comments about package.json.
 
 When upgrading, keep in mind that the @aws-cdk should have the same minor number. Otherwise, compatability issues arise. This is why I pin versions to the minor number using ~ instead of the major one with ^. Also make sure the version number kept in sync with your computer’s CDK CLI utility.
 
+
+
 XXX: Not sure why esbuild is in devDependencies; how is it invoked, or involved?
 
 TODO: Just have to prefix with -- as otherwise npm run will steal arguments. So npm run -- prefix.
@@ -13,4 +15,13 @@ TODO: Move more stuff to devDependencies?
 TODO: Rename this file
 TODO: change .env filename and document
 
+TODO: include env
 
+TODO: implement queue:send
+
+cdk:watch watches lambdas and hotswaps them where posible
+TODO: look into --no-rollback
+https://aws.amazon.com/blogs/developer/increasing-development-speed-with-cdk-watch/
+// https://www.endoflineblog.com/cdk-tips-06-speeding-up-cdk-application-development
+
+// npm i cdk-watch --legacy-peer-deps

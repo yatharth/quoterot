@@ -1,18 +1,18 @@
 import {UserV2} from 'twitter-api-v2'
 
-import {publishAllToQueue, readQueueUrl} from '../../helpers/cdk/lambdas/sqs'
+import {publishAllToQueue, readDefaultQueueUrl} from '../../helpers/cdk/lambdas/sqs.old'
 import {jsonStringifyCompact} from '../../helpers/javascript/stringify'
 import {partition} from '../../helpers/javascript/array'
 import {makeResponse} from '../../helpers/cdk/lambdas/api-gateway'
 import {getFollowers} from '../../helpers/twitter/rest-api/user'
-import {readSecret} from '../../helpers/cdk/lambdas/secrets'
+import {readFromEnv} from '../../helpers/cdk/lambdas/secrets'
 
 
 export async function handler() {
 
-    const queueUrl = readQueueUrl()
+    const queueUrl = readDefaultQueueUrl()
 
-    const botUserId = readSecret('TWITTER_USERID')
+    const botUserId = readFromEnv('TWITTER_USERID')
     const followers = await getFollowers(botUserId)
 
     const isUserProtected = (user: UserV2) => user.protected
@@ -30,4 +30,5 @@ export async function handler() {
     console.log(`All done with ${followers.length} followers!`)
 
     return makeResponse(200, `Of ${followers.length} followers, queued ${unlockedFollowers.length} and ignored ${lockedFollowers.length} locked accounts.`)
+
 }

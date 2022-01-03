@@ -1,5 +1,5 @@
 import {autohook} from './_autohook'
-import {readSecret} from '../../helpers/cdk/lambdas/secrets'
+import {readFromEnv} from '../../helpers/cdk/lambdas/secrets'
 
 
 export async function setWebhook(url: string) {
@@ -20,8 +20,8 @@ export async function setWebhook(url: string) {
         console.log()
         console.log('Subscribing to ourself...')
         await autohook.subscribe({
-            oauth_token: readSecret('TWITTER_ACCESS_TOKEN'),
-            oauth_token_secret: readSecret('TWITTER_ACCESS_TOKEN_SECRET'),
+            oauth_token: readFromEnv('TWITTER_ACCESS_TOKEN'),
+            oauth_token_secret: readFromEnv('TWITTER_ACCESS_TOKEN_SECRET'),
         })
 
         console.log()

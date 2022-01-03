@@ -1,0 +1,72 @@
+import {Construct, Duration} from '@aws-cdk/core'
+import {Queue} from '@aws-cdk/aws-sqs'
+import {Function} from '@aws-cdk/aws-lambda'
+import {SqsEventSource} from '@aws-cdk/aws-lambda-event-sources'
+
+import {makeCfnOutput} from './cfn'
+import {DEFAULT_QUEUE_URL_ENVIRONMENT_VARIABLE} from '../lambdas/sqs.old'
+import {QueueProps} from '@aws-cdk/aws-sqs/lib/queue'
+
+
+export function makeQueueWithDLQ(scope: Construct, queueId: string, dlqId: string,
+    extraProps: QueueProps = {}): [Queue, Queue] {
+
+    // TODO: Look into enabling active X-ray tracing.
+
+    // By default, `retentionPeriod` is 4 days. Max is 14 days.
+    // Note: the period is calculated based on enqueue time in the original queue, not the DLQ.
+    const maxRetentionPeriod = Duration.days(14)
+
+    // How many times to retry lambda handlers on error before an item is sent to DLQ.
+    // I’m setting this to 1; if the handler wants the message to be retried, they can requeue it explicitly.
+    const maxReceiveCount = 1
+
+    // Allow a generous entire minute for the lambda to finish.
+    // Default is 30 seconds, max is 12 hours.
+    const visibilityTimeout = Duration.minutes(1)
+
+    const dlq = new Queue(scope, dlqId, {
+        retentionPeriod: maxRetentionPeriod,
+    })
+
+    const queue = new Queue(scope, queueId, {
+
+        retentionPeriod: maxRetentionPeriod,
+
+        deadLetterQueue: {
+            queue: dlq,
+            maxReceiveCount,
+        },
+
+        visibilityTimeout,
+
+        ...extraProps,
+
+    })
+
+    makeCfnOutput(scope, `${queueId}Url`, queue.queueUrl)
+
+    return [queue, dlq]
+
+}
+
+
+// Allow lambda to publish to queue.
+export function letLambdaQueueTo(lambda: Function, queue: Queue, queueUrlEnvVar: string = DEFAULT_QUEUE_URL_ENVIRONMENT_VARIABLE) {
+    lambda.addEnvironment(queueUrlEnvVar, queue.queueUrl)
+    queue.grantSendMessages(lambda)
+}
+
+
+// Make lambda consume from queue.
+export function subscribeLambdaToQueue(lambda: Function, queue: Queue) {
+    // XXX: Consider maxxing batching variables.
+    // XXX: Increase batch size from 1?
+    lambda.addEventSource(
+        new SqsEventSource(queue, {
+            // https://docs.aws.amazon.com/cdk/api/latest/docs/aws-lambda-event-sources-readme.html
+            // maxBatchingWindow:
+            batchSize: 1,
+        }),
+    )
+}

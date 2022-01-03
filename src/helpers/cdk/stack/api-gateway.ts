@@ -11,8 +11,15 @@ import {makeCfnOutput} from './cfn'
 import {getId} from './cdk'
 
 
-export function makeRestApi(scope: Construct, id: string, name?: string, props: RestApiBaseProps = {}) {
-    return new RestApi(scope, id, {restApiName: name, ...props})
+export function makeRestApi(scope: Construct, id: string, name?: string, extraProps: RestApiBaseProps = {}) {
+    return new RestApi(scope, id, {
+        restApiName: name,
+        deployOptions: {
+            // Enable active X-ray tracing for all downstream services.
+            tracingEnabled: true,
+        },
+        ...extraProps,
+    })
 }
 
 export function addEndpoint(parentEndpoint: IResource, pathPart: string) {
@@ -36,7 +43,7 @@ export function addLambdaToEndpoint(api: RestApi, endpoint: IResource, methods: 
     }
 
     if (shouldMakeCfnOutput) {
-        const cfnOutputId = `${getId(lambda)}Url`
+        const cfnOutputId = `${getId(lambda)}EndpointUrl`
         makeCfnOutputForEndpoint(api, cfnOutputId, endpoint)
     }
 
