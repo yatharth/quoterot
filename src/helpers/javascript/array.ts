@@ -5,9 +5,7 @@ export function partition<T>(array: T[], predicate: (value: T, index: number, ar
 }
 
 
-export function findElementMatching<Element, Key extends keyof Element>(
+export function findElementByProperty<Element, Key extends keyof Element>(
     arr: Element[], key: Key, value: Element[Key]): Element | undefined {
-
     return arr.find((element) => element[key] == value)
-
 }

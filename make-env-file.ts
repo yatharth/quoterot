@@ -1,5 +1,5 @@
-// Collects all the specified .env files into one big one.
-// Run automatically by `npm run build`.
+// Concatenates all the *.env files in secrets/ into one big .env file.
+// This file is run automatically by `npm run build`.
 
 import * as fs from 'fs'
 import glob from 'glob'

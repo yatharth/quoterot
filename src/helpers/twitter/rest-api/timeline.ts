@@ -1,8 +1,10 @@
+// Functions for fetching timelines of users.
+
 import {endOfHour, subHours} from 'date-fns'
 
 import {client} from './_auth'
 import {verifyNoErrors} from './_errors'
-import {tweetParams} from './tweet'
+import {tweetParamsToFetch} from './tweet'
 
 
 export async function getTimelineBetween(userId: string, startTime: Date, endTime: Date) {
@@ -11,7 +13,7 @@ export async function getTimelineBetween(userId: string, startTime: Date, endTim
         max_results: 100,  // 100 is the maximum allowed.
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-        ...tweetParams,
+        ...tweetParamsToFetch,
     })
 
     console.log(`Fetched ${timeline.tweets.length} tweets.`)
@@ -25,7 +27,8 @@ export async function getTimelineBetween(userId: string, startTime: Date, endTim
     // @ts-ignore
     verifyNoErrors(timeline, "getting timeline", [
         "Sorry, you are not authorized to see the user with",
-        "Sorry, you are not authorized to see the Tweet with"
+        "Sorry, you are not authorized to see the Tweet with",
+        "Could not find tweet with",
     ])
 
     return timeline

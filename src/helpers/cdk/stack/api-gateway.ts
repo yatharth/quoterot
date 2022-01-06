@@ -1,4 +1,4 @@
-import urljoin from 'url-join'
+// Helpers for exposing API endpoints to lambda functions.
 
 import {IResource} from '@aws-cdk/aws-apigateway/lib/resource'
 import {Function} from '@aws-cdk/aws-lambda'
@@ -7,8 +7,7 @@ import {Construct} from '@aws-cdk/core'
 import {RestApiBaseProps} from '@aws-cdk/aws-apigateway/lib/restapi'
 
 import {addCorsOptions} from './_cors'
-import {makeCfnOutput} from './cfn'
-import {getId} from './cdk'
+import {getId, makeCfnOutput} from './cdk'
 
 
 export function makeRestApi(scope: Construct, id: string, name?: string, extraProps: RestApiBaseProps = {}) {
@@ -30,13 +29,13 @@ export function addEndpoint(parentEndpoint: IResource, pathPart: string) {
 
 function makeCfnOutputForEndpoint(api: RestApi, id: string, endpoint: IResource) {
     const scope = api.stack
-    const url = urljoin(api.url, endpoint.path)
+    const url = api.urlForPath(endpoint.path)
     makeCfnOutput(scope, id, url)
 }
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
-export function addLambdaToEndpoint(api: RestApi, endpoint: IResource, methods: HttpMethod[], lambda: Function, shouldMakeCfnOutput: boolean) {
+export function addLambdaToEndpoint(api: RestApi, methods: HttpMethod[], endpoint: IResource, lambda: Function, shouldMakeCfnOutput: boolean) {
 
     for (const method of methods) {
         endpoint.addMethod(method, new LambdaIntegration(lambda))
@@ -51,6 +50,6 @@ export function addLambdaToEndpoint(api: RestApi, endpoint: IResource, methods: 
 
 export function addLambdaToNewEndpoint(api: RestApi, methods: HttpMethod[], parentResource: IResource, pathPart: string, lambda: Function, shouldMakeCfnOutput: boolean) {
     const endpoint = addEndpoint(parentResource, pathPart)
-    addLambdaToEndpoint(api, endpoint, methods, lambda, shouldMakeCfnOutput)
+    addLambdaToEndpoint(api, methods, endpoint, lambda, shouldMakeCfnOutput)
     return endpoint
 }

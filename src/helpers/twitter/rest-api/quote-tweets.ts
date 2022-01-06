@@ -1,3 +1,5 @@
+// Functions for dealing with quote tweets on Twitter.
+
 import {TweetUserTimelineV2Paginator, TweetV2, TweetV2SingleResult} from 'twitter-api-v2'
 
 

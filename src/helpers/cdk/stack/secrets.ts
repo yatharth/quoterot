@@ -1,3 +1,5 @@
+// Helper for passing secrets and environment variables to lambda fucntions.
+
 import dotenv from 'dotenv'
 import * as fs from 'fs'
 

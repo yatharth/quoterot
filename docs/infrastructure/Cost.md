@@ -1,1 +1,0 @@
-To reduce costs, could switch DynamoDB pricing, or make Lambdas use lest time, or use HTTP API instead of REST API.

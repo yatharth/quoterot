@@ -1,45 +1,145 @@
-# Quote Rot
+# @quoterot
+
+People come and go. Links rot. Tweets get deleted.
+
+@quoterot is a simple bot to protect your threads from bit rot.
+
+When you make quote-tweets of other tweets, they become part of the fabric of your thread. If those tweets get lost, your thread might lose vital context too. @quoterot archives tweets you quote so you can recover the original meaning of your threads.
 
 
-## Developer Notes
+## HOW TO USE?
 
-This repo uses [AWS CDK][cdk] to define its infrastructure declaratively. This makes deploying to AWS super easy.
+Follow [@quoterot][] on Twitter and the bot will automatically archive any tweets you quote.
 
-Error monitoring is done using [Dashbird][dashbird].
+If you go back to one of your threads and find a tweet you quoted has been deleted, you can recover an archived version of it by simply replying and tagging @quoterot. The bot will reply with an archive link if found.
+
+![twitter-profile][]
+
+
+## FAQ
+
+### Where are quoted tweets archived to?
+
+[The Wayback Machine][wayback].
+
+### Does @quoterot store any data?
+
+No data is stored by @quoterot itself.
+
+### Does this archive tweets I quoted before I followed the bot?
+
+No, the bot only starts archiving tweets you quote after you follow it.
+
+### Can I tag @quoterot in other’s threads? 
+
+Yes. If you encounter someone else’s quote-tweet of a tweet that has since been deleted, you can tag @quoterot, which will see if that deleted tweet had been archived on the Wayback Machine. 
+
+
+[twitter-profile]: https://user-images.githubusercontent.com/1520684/148296717-3464b96c-3c4d-4f19-8bc0-02648ee0157f.png
+[@quoterot]: https://twitter.com/quoterot
+[wayback]: https://web.archive.org
+
+
+## DEVELOPER NOTES
+
+This repo uses infrastructure-as-code to run entirely on AWS.
+
+The project is written in Typescript, and uses [AWS CDK][cdk] to define the infrastructure. The actual code is organised into two micro-services, each of which use lambda functions to work entirely serverlessly. 
+
+
+### Architecture
+
+The app is split into three “stacks”:
+
+- `ArchiveQuotedTweets` monitors followers of the @quoterot Twitter account and archives any tweets they quote.
+- `ReplyToMentions` monitors any mentions of the @quoterot account and replies to them with archive links as needed.
+- `ArchiveInfo` is a simple persistence layer to store information about the tweets archived.
 
 
 ### Code layout
 
+Start by looking at the `src/cdk-app.ts` file. It defines the entire app to be run on AWS.
+
+You can look at the files it imports, then at the files those imports, and come to a pretty good understanding of the code.
+
+The source code is organised into two main folders:
+
 - `src/`
-    - `infrastructure/`
-      - `stack/`: defines the entire infrastructure stack
-      - `lambdas/`: individual lambda functions
-    - `lib/`: domain-specific helper code
-      - `twitter/` for accessing the Twitter API
-      - `archiving/` for accessing web archiving APIs
+    - `cdk-app.ts`: defines the entire app
+    - `stacks/`: the stacks that are part of the app
+    - `helpers/`: helpers for the business logic inside the stacks
+    
+The helpers are organised as follows:
+
+- `cdk/`
+  - `lambdas/`: CDK helpers to be used inside Lambda functions during run-time
+  - `stack/`: CDK helpers for defining the infrastructure at define-time
+- `twitter/`
+    - `rest-api/`: for calling Twitter’s REST API
+- `archiving/`
+  - `archive-is/`: for saving pages to [archive.today][]
+  - `archive-dot-org/`: for saving pages to [archive.org][]
+- `javascript/`: misc helpers with Javascript
+
+There are three stacks, each of which has its own folder:
+
+- `src/stacks/archive-quoted-tweets/`
+- `src/stacks/reply-to-mentions/`
+- `src/stacks/archive-info/`
+
+Each stack has `stack.ts` file, which defines the stack and imports any AWS resources used by that stack, and sub-folders like `lambdas/`, `tables/`, `queues/`, etc. that define the actual AWS resources inside that stack.
+
+There might also be a `scripts/` sub-folder, which contains useful scripts for things like starting the Twitter webhook locally, sending messages to an AWS queue, etc.
+
+That’s basically it. Most files have a little comment at the top explaining what they are for.
 
 
-### AWS architecture
+### More detailed architecture
 
-1. EventBridge event rule runs every so often.
-2. This triggers a lambda function called `checkFollowersToQueue`.
-3. That lambda checks our `@quoterot` Twitter bot’s followers on Twitter, then puts all of them in an SQS queue `followersToCheckQueue`.
-4. That queue feeds into a lambda function called `parseFollowerTimelines`, which takes a follower, pulls in their tweets from the last day or few hours, sees which ones quote other tweets, and makes a list of those quoted tweets.
-5. Those quotes tweets get inserted into an SQS queue called `tweetsToArchiveQueue`.
-6. That queue feeds into a lambda function called `archiveTweets` which then requests an online web archiving system to archive those quoted tweets for future reference.
+The `archive-quoted-tweets` stack works as follows:
 
-Right now, parts (1–5) are implemented; (6) is not.
+ Cron job → runs **queueFollowersToCheck**  
+  → queues to _followersToCheck_ → consumed by **parseFollowerTimeline**  
+→ queues to _tweetsToArchive_ → consumed by **archiveTweet**  
+→ queues to _savesToCheck_ → consumed by **checkSaveStatus**
+
+In words:
+
+1. The `queueFollowersToCheck` lambda function is run every 12 hours by an AWS Events cron job. It uses the Twitter REST API to get all the followers of the @quoterot accounts and queues the IDs of onto the `followersToCheckQueue` queue.
+
+2. The `parseFollowerTimeline` lambda function consumes that queue. For each follower, the function calls the Twitter REST API to fetch their most recent tweets. If any of them are quote tweets of other  tweets, the URLs of the quoted tweets are put on the `tweetsToArchive` queue.
+
+3. The `archiveTweet` lambda function consumes that queue. If the tweet was already archived, the function is done; otherwise, it requests the Wayback Macine to archive the tweet, and puts the job ID in the `savesToCheck` queue.
+
+4. The `checkSaveRequest` lambda function consumes job IDs after 10-minute delay, to make sure the requested save was successfully completed.
+
+If any of the lambdas fail to process an item, the item is sent to a “Dead Letter Queue” that holds those failed items. 
+
+Error monitoring is done using [Dashbird][dashbird]. It sends an email when any lambda encounters an unexpected error by monitoring the logs.
+
+---
+
+The `reply-to-mention` stack works as follows:
+
+It uses the Twitter Account Activity API to get notified whenever there is activity for the @quoterot account. It defines a webhook for the Account Activity API to call, which then handles the account activity.
+
+The `webhook/` folder defines the webhook itself in an environment-agnostic way. You can run it locally using the `npm run webhook:dev` command or have it run on AWS.
+
+The `lambdas/` folder has two lambdas: `serve-webhook`, which runs the webhook on AWS, and `register-webhook`, which registers the webhook with Twitter.
+
+The `scripts/` folder defines some more useful commands, like `npm run webhook:get` to see the current status of the webhooks and so forth.
 
 
-### Documentation
+### TODOs convention
 
-`docs/infrastructure/` contains some miscellanous personal notes on using CDK. That’s about it.
+- `FIXME: <note>` for immediate, high-priority fixes
+- `TODO: <note>` for improvements to get around to sometime
+- `XXX: <note>` for minor, low-priority wishlist improvements.
 
 
+## INSTALLATION
 
-## Installation
-
-If you’re working with Yatharth, follow these instructions, and you’ll be good to go. If you’re deploying this project independently, then make sure to complete the “First-time setup” section below first.
+If you’re working with Yatharth, follow these instructions, and you’ll be good to go. If you’re deploying this project independently, then make sure to complete the “First-time setup” instructions first, inside the `docs/` folder.
 
 
 ### Getting your AWS tools ready
@@ -88,65 +188,27 @@ cd quoterot
 npm install
 ```
 
-Create a file called `TWITTER_V2_BEARER_TOKEN` inside the `secrets/` folder. Paste bearer token secret for Twitter API access. Ask [Yatharth][yatharthemail] for this, or create your own using the first-time setup instructions below.
+Get some `.env` files from [Yatharth][yatharthemail] if you’re working with him and put them in the `secrets/` folders. They will contain secrets for Twitter and archive.org. If you’re working on your own, follow the first-time setup instructions below to get those secrets.
 
 
-### Deploying and testing
+### Deploying
 
-You can now run
+You can now run:
 
-* `npm run sanitycheck` to make sure your CDK configuration looks good.
-* `npm run diff` to check what resources will be changed on deployment.
-* `npm run local` to test out the API locally with SAM.
-* `npm run deploy` to deploy to AWS.
-* `npm run destroy` to tear down whatever has been created.
+* `npm run -- cdk:sanitycheck --all` to make sure your CDK configuration looks good.
+* `npm run -- cdk:diff --all` to check what resources will be changed on deployment.
+* `npm run -- cdk:deploy --all` to deploy to AWS.
+* `npm run -- cdk:destroy --all` to tear down whatever has been created.
 
-You can run with specific stacks! In this case . . . TODO: blah
+Don’t forget the `--`. You need it to `npm run` doesn’t steal the command-line arguments for itself, but rather passes them to the cdk command.
 
+For development, you can run 
 
-### Testing locally 
+* `npm run lambdas:watch` to hot-upload any changes to lambda function code near-instantly, show you logs of their execution, and watch for changes
+* `npm run webhook:dev` to run the Twitter webhook locally, register it with Twitter, and watch the source file for changes, recompiling as necessary
 
-You can do a limited amount of testing locally. 
+Both of them speed up development by an order of magnitude.
 
-You need to have Docker installed and running. Then just run `npm run local`.
-
-This uses AWS SAM under the hood. SAM can run the API gateway and the lambda functions locally, but it can’t simulate SQS, SNS, or other services. Thus, you’ll have to already have deployed these resources those to AWS, have captured their URLs or ARNs, and then pass those in as environment variables into the lambda functions appropriately. This is complicated enough that I haven’t bothered doing this.
-
+There’s also other `npm run` commands which you can take a look at. 
 
 
-## First-time setup
-
-If you’re working with Yatharth, ignore this section. He’s done this already.
-
-If you’re deploying this project independently, then follow these instructions. These steps can’t be automated or declared with code, unfortunately. So they have to be done manually.
-
-
-### AWS
-
-1. Create an IAM user using [this guide](https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_create-admin-group.html).
-2. On the Details page, check both “AWS Management Console access” and “Programmatic access”. The latter generates an Access ID and Secret Access Key for the user that you’ll need for the AWS CLI.
-3. Note down the Access ID and Secret Access Key.
-
-
-### Twitter
-
-1. Go to the Twitter Developer Portal and apply for access to the v2 API. Wait for approval.
-2. In the portal, find your project, and note down its consumer secrets.
-3. Generate a bearer token and note it down. 
-4. Generate OAuth secrets and note them down.
-5. Generate access token secrets and note them down.
-6. Apply for Elevated access (to use the Account Activity API). Wait for approval.
-7. In the portal, create an Account Activity API dev environment and note its name down.
-
-
-### Dashbird
-
-1. Create a [Dashbird][dashbird] account. Connect it to your AWS using the steps they walk you through.
-2. Add all the emails you want to be notified in case of an error.
-3. Create a Resource Group with all the Lambdas.
-4. Create 2 Alarms for when the error counts or throttles exceeds 0.
-
-
-[cdk]: https://aws.amazon.com/cdk/
-[dashbird]: https://dashbird.io
-[yatharthemail]: mailto:yatharth999@gmail.com

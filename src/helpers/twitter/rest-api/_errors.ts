@@ -1,15 +1,16 @@
 import {jsonStringifyPretty} from '../../javascript/stringify'
 
 
+type Errors = { detail?: string }[]
+type WithErrors = { errors?: Errors, _realData?: { errors?: Errors } }
+
 function throwError(errors: unknown, forWhat: string) {
     console.error(`API response for ${forWhat} had errors:`)
     console.error(jsonStringifyPretty(errors))
     throw `API response for ${forWhat} had errors.`
 }
 
-type Errors = { detail?: string }[]
-type WithErrors = { errors?: Errors, _realData?: { errors?: Errors } }
-
+// Make sure no unacceptable errors exist in the given errors object.
 function verifyNoErrorsHelper(errors: Errors, forWhat: string, acceptableErrorMessages: string[] = []) {
 
     const unacceptableErrors = errors.filter(error =>
@@ -18,6 +19,7 @@ function verifyNoErrorsHelper(errors: Errors, forWhat: string, acceptableErrorMe
     if (unacceptableErrors.length) {
         throwError(unacceptableErrors, forWhat)
     }
+
 }
 
 export function verifyNoErrors(result: WithErrors, forWhat: string, acceptableErrorMessages: string[] = []) {

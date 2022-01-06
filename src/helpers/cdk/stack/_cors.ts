@@ -1,3 +1,6 @@
+// Helper for setting CORS headers on AWS API Gateway.
+// Not needed for the simpler HTTP API setting of API Gateway, but needed for its REST API setting.
+
 import {IResource, MockIntegration, PassthroughBehavior} from '@aws-cdk/aws-apigateway'
 
 export function addCorsOptions(apiResource: IResource) {
