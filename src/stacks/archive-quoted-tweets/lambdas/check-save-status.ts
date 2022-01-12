@@ -3,7 +3,7 @@ import {jsonStringifyPretty} from '../../../helpers/javascript/stringify'
 import {savesToCheckClient} from '../queues/saves-to-check'
 
 
-async function checkSave(jobId: string) {
+async function checkSave({jobId, tweetUrl}: typeof savesToCheckClient.message) {
 
     // If we throw an error, SQS will realise the message wasn’t successfully
     //  handled and send it to the Dead Letter Queue.
@@ -16,7 +16,7 @@ async function checkSave(jobId: string) {
         jobStatus = await spn.fetchJobStatus(jobId)
 
     } catch (err) {
-        console.error(`Couldn’t fetch status of job ${jobId}.`)
+        console.error(`Couldn’t fetch status of job ${jobId} for ${tweetUrl}.`)
         throw err
     }
 
@@ -24,7 +24,7 @@ async function checkSave(jobId: string) {
 
         case 'success':
 
-            console.log(`Job ${jobId} was a success!`)
+            console.log(`Job ${jobId} was success for archiving ${tweetUrl}!`)
             return
 
         case 'pending':
@@ -41,22 +41,22 @@ async function checkSave(jobId: string) {
             //  as possible, then it might make more sense to implement a requeueing mechanism.
             //  Right now, it doesn’t, so we just mark the job as failed by throwing an error.
 
-            console.error(`Job ${jobId} was still pending:`)
+            console.error(`Job ${jobId} was pending for ${tweetUrl}.`)
             console.error(jsonStringifyPretty(jobStatus))
-            throw `Job ${jobId} was still pending.`
+            throw `Job ${jobId} was pending for ${tweetUrl}.`
 
 
         case 'error':
 
-            console.error(`Job ${jobId} had an error:`)
+            console.error(`Job ${jobId} had an error for ${tweetUrl}:`)
             console.error(jsonStringifyPretty(jobStatus))
-            throw `Job ${jobId} had an error.`
+            throw `Job ${jobId} had an error for ${tweetUrl}.`
 
         default:
 
-            console.error(`Unexpected response while checking status for job ${jobId}:`)
+            console.error(`Unexpected response while checking status for job ${jobId} for ${tweetUrl}:`)
             console.error(jsonStringifyPretty(jobStatus))
-            throw `Unexpected response while checking status for job ${jobId}.`
+            throw `Unexpected response while checking status for job ${jobId} for ${tweetUrl}.`
 
     }
 

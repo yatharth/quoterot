@@ -3,6 +3,10 @@
 # It takes two arguments
 # 1. (partial) name of queue
 # 2. message body
+#
+# If the message body will be parsed as JSON, make sure
+# - it contains no spaces (or this script won’t correctly pass arguments to the aws CLI).
+# - it puts the key ids in quotes (or `JSON.parse()` will error out).
 
 queue_name=$1
 message_body=$2

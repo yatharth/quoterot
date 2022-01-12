@@ -1,4 +1,4 @@
-import {String} from 'runtypes'
+import {Record, String} from 'runtypes'
 
 import {QueueDefinition} from '../../../helpers/cdk/lambdas/queue-definition'
 import {QueueClient} from '../../../helpers/cdk/lambdas/queue-client'
@@ -9,4 +9,7 @@ export const savesToCheckDefinition: QueueDefinition = {
     concurrency: 1,
 }
 
-export const savesToCheckClient = new QueueClient(savesToCheckDefinition, String)
+export const savesToCheckClient = new QueueClient(savesToCheckDefinition, Record({
+    jobId: String,
+    tweetUrl: String,
+}))

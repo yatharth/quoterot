@@ -37,7 +37,7 @@ async function archiveTweetUrl(tweetUrl: string) {
                 throw `SPN API said host was busy while trying to archive tweet URL ${tweetUrl}`
 
             case 'success':
-                await savesToCheckClient.publish(result.jobId)
+                await savesToCheckClient.publish({jobId: result.jobId, tweetUrl})
                 console.log(`Successfully requested save of tweet URL ${tweetUrl} with job ID ${result.jobId}`)
                 return
 
